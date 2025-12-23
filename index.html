@@ -14,7 +14,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class', // Enable class-based dark mode for NewAPI
+            darkMode: 'class', // Enable class-based dark mode
             theme: {
                 extend: {
                     fontFamily: {
@@ -22,7 +22,6 @@
                         serif: ['"Noto Serif"', 'serif'],
                     },
                     colors: {
-                        // Map Tailwind colors to CSS variables
                         background: "var(--background)",
                         foreground: "var(--foreground)",
                         primary: "var(--primary)",
@@ -60,15 +59,15 @@
             --noise-filter: none;
         }
 
-        /* Dark Mode Override (Triggered by class="dark" on html) */
+        /* Dark Mode Override (Black & Gold Theme) */
         .dark {
-            --background: #0a0a0a;  /* Deep Charcoal */
-            --foreground: #ededed;  /* Soft Silver */
-            --primary: #d47a58;     /* Slightly lighter orange for dark contrast */
-            --muted: #1f1f1f;
-            --muted-foreground: #a1a1aa;
-            --noise-opacity: 0.04;  /* Lower opacity for white noise */
-            --noise-filter: invert(1); /* Invert noise to be white on black */
+            --background: #050505;  /* Pure Deep Black */
+            --foreground: #F5F5F0;  /* Soft Cream White */
+            --primary: #D4AF37;     /* Champagne Gold */
+            --muted: #141414;       /* Dark Grey Backgrounds */
+            --muted-foreground: #8A867D; /* Greyish Gold */
+            --noise-opacity: 0.03;  /* Slightly more subtle noise on black */
+            --noise-filter: invert(1);
         }
 
         body {
@@ -97,7 +96,6 @@
             stroke-width: 1px;
             stroke-dasharray: 600; 
             stroke-dashoffset: 600; 
-            /* Run once, no loop */
             animation: strokeAnim 5s cubic-bezier(0.45, 0, 0.55, 1) forwards, 
                        fillAnim 5s cubic-bezier(0.45, 0, 0.55, 1) forwards;
             animation-delay: 0.2s;
@@ -107,7 +105,6 @@
             to { stroke-dashoffset: 0; }
         }
         
-        /* Fill Animation updated to use variable */
         @keyframes fillAnim {
             0%, 70% { fill: transparent; }
             100% { fill: var(--foreground); stroke-width: 0; }
@@ -206,16 +203,71 @@
         <!-- Global Noise -->
         <div class="absolute inset-0 bg-noise z-0"></div>
 
+        <!-- Theme Toggle Button (Test Control) -->
+        <button @click="toggleTheme" class="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full border border-foreground/10 bg-background/50 backdrop-blur-md shadow-sm hover:shadow-md hover:scale-105 transition-all duration-300 flex items-center justify-center text-foreground group">
+             <!-- Sun Icon (Show when dark) -->
+            <svg v-if="isDark" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="group-hover:rotate-45 transition-transform duration-500"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+            <!-- Moon Icon (Show when light) -->
+            <svg v-else xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="group-hover:-rotate-12 transition-transform duration-500"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </button>
+
     </div>
 
     <!-- Vue 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 
     <script>
-        const { createApp, onMounted } = Vue;
+        const { createApp, onMounted, ref } = Vue;
 
         createApp({
             setup() {
+                const isDark = ref(false);
+
+                // Initialize theme logic
+                const updateTheme = () => {
+                    const savedTheme = localStorage.getItem('theme');
+                    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    
+                    // Logic to determine if we should be dark
+                    // NewAPI usually saves 'dark', 'light', or 'system'/'auto'
+                    if (savedTheme === 'dark') {
+                        isDark.value = true;
+                    } else if (savedTheme === 'light') {
+                        isDark.value = false;
+                    } else {
+                        // Default to system preference if 'auto' or undefined
+                        isDark.value = systemDark;
+                    }
+
+                    // Apply to HTML tag
+                    const html = document.documentElement;
+                    if (isDark.value) {
+                        html.classList.add('dark');
+                    } else {
+                        html.classList.remove('dark');
+                    }
+                };
+
+                // Manual Toggle for Testing
+                const toggleTheme = () => {
+                    isDark.value = !isDark.value;
+                    const newTheme = isDark.value ? 'dark' : 'light';
+                    
+                    // Apply immediately
+                    const html = document.documentElement;
+                    if (isDark.value) {
+                        html.classList.add('dark');
+                    } else {
+                        html.classList.remove('dark');
+                    }
+
+                    // Save to localStorage so NewAPI might pick it up (or for persistence on reload)
+                    localStorage.setItem('theme', newTheme);
+                    
+                    // Dispatch storage event to notify other tabs/frames if possible
+                    window.dispatchEvent(new Event('storage'));
+                };
+
                 // Scroll observer for reveal animations
                 const setupIntersectionObserver = () => {
                     const observer = new IntersectionObserver((entries) => {
@@ -232,10 +284,43 @@
                 };
 
                 onMounted(() => {
+                    // 1. Initial Check
+                    updateTheme();
+
+                    // 2. Listen for Storage changes (if theme is changed in another tab or parent window)
+                    window.addEventListener('storage', updateTheme);
+
+                    // 3. Listen for System Preference changes
+                    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                        if (!localStorage.getItem('theme') || localStorage.getItem('theme') === 'system') {
+                            updateTheme();
+                        }
+                    });
+
+                    // 4. Fallback: MutationObserver (Optional, if NewAPI modifies the parent HTML class)
+                    // If this page is NOT in an iframe, this helps sync with a parent framework adding 'dark' class
+                    const observer = new MutationObserver((mutations) => {
+                        mutations.forEach((mutation) => {
+                            if (mutation.attributeName === "class") {
+                                // Check if parent html has dark mode
+                                // This is tricky if we are inside our own html tag, 
+                                // but ensures we stay in sync if external JS modifies our tag
+                                const hasDark = document.documentElement.classList.contains('dark');
+                                if (hasDark !== isDark.value) {
+                                    isDark.value = hasDark;
+                                }
+                            }
+                        });
+                    });
+                    observer.observe(document.documentElement, { attributes: true });
+
                     setTimeout(setupIntersectionObserver, 100);
                 });
 
-                return {};
+                return {
+                    isDark,
+                    toggleTheme
+                };
             }
         }).mount('#app');
     </script>
