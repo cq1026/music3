@@ -1,10 +1,217 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Test Page</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AnII - The API Gateway</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Serif:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['"Noto Serif"', 'serif'],
+                    },
+                    colors: {
+                        background: "#F9F8F6",
+                        foreground: "#2D2A26",
+                        primary: "#C06C4D",
+                        muted: "#E6E2DA",
+                        "muted-foreground": "#8A847C",
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'line-grow': 'lineGrow 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: 0, transform: 'translateY(30px)' },
+                            '100%': { opacity: 1, transform: 'translateY(0)' },
+                        },
+                        lineGrow: {
+                            '0%': { transform: 'scaleX(0)', opacity: 0 },
+                            '100%': { transform: 'scaleX(1)', opacity: 1 },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #F9F8F6;
+            color: #2D2A26;
+            overflow-x: hidden;
+        }
+
+        /* Noise Texture */
+        .bg-noise {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.06'/%3E%3C/svg%3E");
+            pointer-events: none;
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+
+        /* SVG Text Animation (Reverted to original behavior) */
+        .svg-text text {
+            fill: transparent; 
+            stroke: currentColor; 
+            stroke-width: 1px;
+            stroke-dasharray: 600; 
+            stroke-dashoffset: 600; 
+            /* Run once, no loop */
+            animation: strokeAnim 5s cubic-bezier(0.45, 0, 0.55, 1) forwards, 
+                       fillAnim 5s cubic-bezier(0.45, 0, 0.55, 1) forwards;
+            animation-delay: 0.2s;
+        }
+
+        @keyframes strokeAnim {
+            to { stroke-dashoffset: 0; }
+        }
+        
+        /* Reverted Fill Animation: Simple fade in fill */
+        @keyframes fillAnim {
+            0%, 70% { fill: transparent; }
+            100% { fill: #2D2A26; stroke-width: 0; }
+        }
+
+        /* Scroll Reveal Utility */
+        .reveal-element {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal-element.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Hide scrollbar */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+    </style>
 </head>
-<body>
-    <h1>My Assets Site is Working!</h1>
-    <p>如果能看到这个页面，说明GitHub Pages服务本身是正常的。</p>
+<body class="antialiased font-sans selection:bg-primary/20 relative cursor-default">
+
+    <div id="app" class="relative z-10 flex flex-col min-h-screen">
+        
+        <!-- Hero Section -->
+        <header class="relative min-h-screen flex flex-col justify-center items-center px-6 text-center overflow-hidden">
+            
+            <!-- Hero Animation -->
+            <div class="mb-10 relative w-full max-w-2xl h-32 md:h-48 select-none opacity-90">
+                <svg viewBox="0 0 400 120" class="w-full h-full svg-text overflow-visible font-serif font-bold">
+                    <text x="50%" y="80" text-anchor="middle" font-size="90" class="tracking-tight">AnII Gateway</text>
+                </svg>
+            </div>
+
+            <!-- Main Headline -->
+            <h1 class="max-w-3xl font-serif text-3xl md:text-5xl leading-[1.2] text-foreground opacity-0 animate-fade-in-up" style="animation-delay: 0.5s">
+                The <span class="italic text-primary/80">Art</span> of Connectivity.
+            </h1>
+
+            <p class="mt-6 max-w-md text-muted-foreground text-sm leading-relaxed tracking-wide opacity-0 animate-fade-in-up" style="animation-delay: 0.7s">
+                A next-generation API proxy designed for elegance, security, and speed. 
+                Redefine how your services communicate.
+            </p>
+
+            <!-- Subtle Scroll Indicator -->
+            <div class="absolute bottom-12 left-1/2 -translate-x-1/2 opacity-0 animate-fade-in-up" style="animation-delay: 1.5s">
+                <p class="text-[10px] uppercase tracking-[0.3em] text-muted-foreground/50">Scroll</p>
+                <div class="w-px h-8 bg-foreground/10 mx-auto mt-4"></div>
+            </div>
+        </header>
+
+        <!-- Divider -->
+        <div class="w-full px-12 md:px-24">
+            <div class="w-full h-px bg-foreground/5 origin-left animate-line-grow" style="animation-delay: 1s"></div>
+        </div>
+
+        <!-- Features Section (Minimalist) -->
+        <section class="py-32 px-6 md:px-12 max-w-5xl mx-auto w-full">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-12">
+                <!-- Feature 1 -->
+                <div class="group reveal-element text-center md:text-left">
+                    <h3 class="font-serif text-lg mb-3 text-foreground/90">Bank-Grade Security</h3>
+                    <p class="text-xs md:text-sm text-muted-foreground leading-relaxed font-light">
+                        End-to-end encryption with automated key rotation. Your data remains yours, always protected.
+                    </p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="group reveal-element text-center md:text-left" style="transition-delay: 100ms">
+                    <h3 class="font-serif text-lg mb-3 text-foreground/90">Global Edge Network</h3>
+                    <p class="text-xs md:text-sm text-muted-foreground leading-relaxed font-light">
+                        Deployed across 35+ regions. Routes requests to the nearest node for sub-millisecond latency.
+                    </p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="group reveal-element text-center md:text-left" style="transition-delay: 200ms">
+                    <h3 class="font-serif text-lg mb-3 text-foreground/90">Real-Time Insight</h3>
+                    <p class="text-xs md:text-sm text-muted-foreground leading-relaxed font-light">
+                        Visualize traffic patterns instantly. Debug effortlessly with granular request tracing.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Removed Code Section -->
+
+        <!-- Minimal Footer -->
+        <div class="py-12 text-center reveal-element">
+            <p class="text-[10px] text-muted-foreground/40 uppercase tracking-widest font-light">
+                © 2025 AnII Project
+            </p>
+        </div>
+
+        <!-- Global Noise -->
+        <div class="absolute inset-0 bg-noise z-0"></div>
+
+    </div>
+
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+    <script>
+        const { createApp, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                // Scroll observer for reveal animations
+                const setupIntersectionObserver = () => {
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add('active');
+                            }
+                        });
+                    }, { threshold: 0.1 });
+
+                    document.querySelectorAll('.reveal-element').forEach(el => {
+                        observer.observe(el);
+                    });
+                };
+
+                onMounted(() => {
+                    setTimeout(setupIntersectionObserver, 100);
+                });
+
+                return {};
+            }
+        }).mount('#app');
+    </script>
 </body>
 </html>
