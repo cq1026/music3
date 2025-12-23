@@ -14,6 +14,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class', // Enable class-based dark mode for NewAPI
             theme: {
                 extend: {
                     fontFamily: {
@@ -21,11 +22,12 @@
                         serif: ['"Noto Serif"', 'serif'],
                     },
                     colors: {
-                        background: "#F9F8F6",
-                        foreground: "#2D2A26",
-                        primary: "#C06C4D",
-                        muted: "#E6E2DA",
-                        "muted-foreground": "#8A847C",
+                        // Map Tailwind colors to CSS variables
+                        background: "var(--background)",
+                        foreground: "var(--foreground)",
+                        primary: "var(--primary)",
+                        muted: "var(--muted)",
+                        "muted-foreground": "var(--muted-foreground)",
                     },
                     animation: {
                         'fade-in-up': 'fadeInUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards',
@@ -47,10 +49,33 @@
     </script>
 
     <style>
+        /* CSS Variables for Theming */
+        :root {
+            --background: #F9F8F6;
+            --foreground: #2D2A26;
+            --primary: #C06C4D;
+            --muted: #E6E2DA;
+            --muted-foreground: #8A847C;
+            --noise-opacity: 0.06;
+            --noise-filter: none;
+        }
+
+        /* Dark Mode Override (Triggered by class="dark" on html) */
+        .dark {
+            --background: #0a0a0a;  /* Deep Charcoal */
+            --foreground: #ededed;  /* Soft Silver */
+            --primary: #d47a58;     /* Slightly lighter orange for dark contrast */
+            --muted: #1f1f1f;
+            --muted-foreground: #a1a1aa;
+            --noise-opacity: 0.04;  /* Lower opacity for white noise */
+            --noise-filter: invert(1); /* Invert noise to be white on black */
+        }
+
         body {
-            background-color: #F9F8F6;
-            color: #2D2A26;
+            background-color: var(--background);
+            color: var(--foreground);
             overflow-x: hidden;
+            transition: background-color 0.5s ease, color 0.5s ease;
         }
 
         /* Noise Texture */
@@ -60,9 +85,12 @@
             position: fixed;
             inset: 0;
             z-index: 0;
+            opacity: var(--noise-opacity);
+            filter: var(--noise-filter);
+            transition: opacity 0.5s ease, filter 0.5s ease;
         }
 
-        /* SVG Text Animation (Reverted to original behavior) */
+        /* SVG Text Animation */
         .svg-text text {
             fill: transparent; 
             stroke: currentColor; 
@@ -79,10 +107,10 @@
             to { stroke-dashoffset: 0; }
         }
         
-        /* Reverted Fill Animation: Simple fade in fill */
+        /* Fill Animation updated to use variable */
         @keyframes fillAnim {
             0%, 70% { fill: transparent; }
-            100% { fill: #2D2A26; stroke-width: 0; }
+            100% { fill: var(--foreground); stroke-width: 0; }
         }
 
         /* Scroll Reveal Utility */
@@ -119,7 +147,7 @@
 
             <!-- Main Headline -->
             <h1 class="max-w-3xl font-serif text-3xl md:text-5xl leading-[1.2] text-foreground opacity-0 animate-fade-in-up" style="animation-delay: 0.5s">
-                The <span class="italic text-primary/80">Art</span> of Connectivity.
+                The <span class="italic text-primary">Art</span> of Connectivity.
             </h1>
 
             <p class="mt-6 max-w-md text-muted-foreground text-sm leading-relaxed tracking-wide opacity-0 animate-fade-in-up" style="animation-delay: 0.7s">
@@ -167,8 +195,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- Removed Code Section -->
 
         <!-- Minimal Footer -->
         <div class="py-12 text-center reveal-element">
